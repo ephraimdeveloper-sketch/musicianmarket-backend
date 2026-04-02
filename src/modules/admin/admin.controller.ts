@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, UseGuards, Post, Body } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
@@ -25,5 +25,15 @@ export class AdminController {
   @Patch('withdrawals/:id/approve')
   async approveWithdrawal(@Param('id') id: string) {
     return { data: await this.adminService.approveWithdrawal(id) };
+  }
+
+  @Post('promo-codes')
+  async createPromoCode(@Body('type') type: 'PROFILE_UPDATE' | 'PREMIUM_CHAT_IMAGE') {
+    return { data: await this.adminService.generatePromoCode(type) };
+  }
+
+  @Post('notifications')
+  async sendNotification(@Body() body: { title: string; message: string }) {
+    return { data: await this.adminService.sendBroadcastNotification(body.title, body.message) };
   }
 }

@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param, Query, UseInterceptors, UploadedFile, UseGuards, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseInterceptors, UploadedFiles, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Category } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
@@ -30,12 +30,24 @@ export class ProductsController {
 
   @Post('upload')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  upload(@UploadedFile() file: any, @Body() body: any, @Req() req: any) {
+  @UseInterceptors(AnyFilesInterceptor())
+  upload(@UploadedFiles() files: Array<Express.Multer.File>, @Body() body: any, @Req() req: any) {
+    const mainFile = files.find(f => f.fieldname === 'file');
+    
+    const previews = [];
+    for(let i=0; i<10; i++) {
+       const audio = files.find(f => f.fieldname === `previewAudio_${i}`);
+       const image = files.find(f => f.fieldname === `previewImage_${i}`);
+       if (audio) {
+          previews.push({ audio, image });
+       }
+    }
+
     return this.productsService.create({
        ...body,
        price: parseFloat(body.price),
-       file,
+       mainFile,
+       previews,
        sellerId: req.user.id
     });
   }

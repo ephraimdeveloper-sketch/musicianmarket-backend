@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Request, UseInterceptors, UploadedFile, Param } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('chat')
 @UseGuards(JwtAuthGuard)
@@ -13,10 +14,22 @@ export class ChatController {
   }
 
   @Post()
+  @UseInterceptors(FileInterceptor('file'))
   sendMessage(
-    @Body() body: { content: string; isPremiumGroup?: boolean },
+    @Body() body: { content: string; isPremiumGroup?: string | boolean; replyToId?: string; promoCode?: string },
     @Request() req: any,
+    @UploadedFile() file: any
   ) {
-    return this.chatService.sendMessage(req.user.id, body.content, body.isPremiumGroup ?? false);
+    const isPremium = typeof body.isPremiumGroup === 'string' ? body.isPremiumGroup === 'true' : !!body.isPremiumGroup;
+    return this.chatService.sendMessage(req.user.id, body.content || '', isPremium, body.replyToId, file, body.promoCode);
+  }
+
+  @Post(':id/react')
+  reactToMessage(
+    @Param('id') id: string,
+    @Body('reaction') reaction: string,
+    @Request() req: any
+  ) {
+    return this.chatService.reactToMessage(id, reaction, req.user.id);
   }
 }

@@ -33,6 +33,12 @@ let AdminController = class AdminController {
     async approveWithdrawal(id) {
         return { data: await this.adminService.approveWithdrawal(id) };
     }
+    async createPromoCode(type) {
+        return { data: await this.adminService.generatePromoCode(type) };
+    }
+    async sendNotification(body) {
+        return { data: await this.adminService.sendBroadcastNotification(body.title, body.message) };
+    }
 };
 exports.AdminController = AdminController;
 __decorate([
@@ -60,6 +66,20 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], AdminController.prototype, "approveWithdrawal", null);
+__decorate([
+    (0, common_1.Post)('promo-codes'),
+    __param(0, (0, common_1.Body)('type')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "createPromoCode", null);
+__decorate([
+    (0, common_1.Post)('notifications'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AdminController.prototype, "sendNotification", null);
 exports.AdminController = AdminController = __decorate([
     (0, common_1.Controller)('admin'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

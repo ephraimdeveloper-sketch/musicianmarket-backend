@@ -37,6 +37,9 @@ model User {
   receivedRatings Rating[]      @relation("ReceivedRatings")
   sentMessages    Message[]     @relation("SentMessages")
   subscription    Subscription?
+  notifications   Notification[]
+
+  avatarUpdates   Int      @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,6 +66,7 @@ enum TransactionType {
   PURCHASE
   SALE_EARNING
   FEE
+  PROFILE_UPDATE
 }
 
 enum TransactionStatus {
@@ -90,6 +94,8 @@ model Transaction {
   updatedAt DateTime @updatedAt
 }
 
+// ... Marketplace Models 
+
 // Marketplace Categories
 enum Category {
   INSTRUMENT
@@ -105,7 +111,7 @@ model Product {
   description String?
   price       Float
   category    Category
-  previewUrl  String? // 10s preview
+  previewUrl  String? // 10s preview (legacy)
   fileUrl     String  // Backblaze secure url
 
   sellerId    String
@@ -113,9 +119,21 @@ model Product {
 
   purchases   Purchase[]
   ratings     Rating[]
+  previews    ProductPreview[] // Max 10 previews (audio + image)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model ProductPreview {
+  id        String  @id @default(uuid())
+  audioUrl  String
+  imageUrl  String?
+  
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
 }
 
 // Purchases
@@ -193,6 +211,10 @@ model Message {
   senderId  String
   sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
+  replyToId String?
+  replyTo   Message?  @relation("Replies", fields: [replyToId], references: [id])
+  replies   Message[] @relation("Replies")
+
   isPremiumGroup Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -210,4 +232,29 @@ model Subscription {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+enum PromoType {
+  PROFILE_UPDATE
+  PREMIUM_CHAT_IMAGE
+}
+
+model PromoCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  type        PromoType
+  isUsed      Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  title       String
+  message     String
+  targetUserId String? // NULL implies global broadcast
+  user        User?    @relation(fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
 }

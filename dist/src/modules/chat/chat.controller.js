@@ -16,6 +16,7 @@ exports.ChatController = void 0;
 const common_1 = require("@nestjs/common");
 const chat_service_1 = require("./chat.service");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
+const platform_express_1 = require("@nestjs/platform-express");
 let ChatController = class ChatController {
     chatService;
     constructor(chatService) {
@@ -24,8 +25,12 @@ let ChatController = class ChatController {
     getMessages(premium) {
         return this.chatService.getMessages(premium === 'true');
     }
-    sendMessage(body, req) {
-        return this.chatService.sendMessage(req.user.id, body.content, body.isPremiumGroup ?? false);
+    sendMessage(body, req, file) {
+        const isPremium = typeof body.isPremiumGroup === 'string' ? body.isPremiumGroup === 'true' : !!body.isPremiumGroup;
+        return this.chatService.sendMessage(req.user.id, body.content || '', isPremium, body.replyToId, file, body.promoCode);
+    }
+    reactToMessage(id, reaction, req) {
+        return this.chatService.reactToMessage(id, reaction, req.user.id);
     }
 };
 exports.ChatController = ChatController;
@@ -38,12 +43,23 @@ __decorate([
 ], ChatController.prototype, "getMessages", null);
 __decorate([
     (0, common_1.Post)(),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
+    __param(2, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], ChatController.prototype, "sendMessage", null);
+__decorate([
+    (0, common_1.Post)(':id/react'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)('reaction')),
+    __param(2, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], ChatController.prototype, "reactToMessage", null);
 exports.ChatController = ChatController = __decorate([
     (0, common_1.Controller)('chat'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

@@ -10,6 +10,13 @@ export declare class ProductsController {
             id: string;
             email: string;
         };
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
     } & {
         id: string;
         createdAt: Date;
@@ -22,7 +29,15 @@ export declare class ProductsController {
         fileUrl: string;
         sellerId: string;
     })[]>;
-    findMyProducts(req: any): Promise<{
+    findMyProducts(req: any): Promise<({
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -33,8 +48,21 @@ export declare class ProductsController {
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-    }[]>;
+    })[]>;
     findOne(id: string): Promise<{
+        seller: {
+            id: string;
+            firstName: string | null;
+            lastName: string | null;
+        };
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -46,7 +74,15 @@ export declare class ProductsController {
         fileUrl: string;
         sellerId: string;
     }>;
-    upload(file: any, body: any, req: any): Promise<{
+    upload(files: Array<Express.Multer.File>, body: any, req: any): Promise<{
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;

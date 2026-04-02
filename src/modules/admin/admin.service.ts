@@ -65,4 +65,17 @@ export class AdminService {
       data: { status: 'COMPLETED' },
     });
   }
+
+  async generatePromoCode(type: 'PROFILE_UPDATE' | 'PREMIUM_CHAT_IMAGE') {
+    const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+    return this.prisma.promoCode.create({
+      data: { code, type, isUsed: false }
+    });
+  }
+
+  async sendBroadcastNotification(title: string, message: string) {
+    return this.prisma.notification.create({
+      data: { title, message }
+    });
+  }
 }

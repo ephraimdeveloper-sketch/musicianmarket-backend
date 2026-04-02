@@ -5,13 +5,26 @@ export declare class ProductsService {
     private prisma;
     private b2;
     constructor(prisma: PrismaService, b2: B2Service);
+    private validateCategoryFileFormat;
     create(data: {
         title: string;
         price: number;
         category: Category;
         sellerId: string;
-        file: any;
+        mainFile: any;
+        previews: {
+            audio: any;
+            image: any;
+        }[];
     }): Promise<{
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -28,6 +41,13 @@ export declare class ProductsService {
             id: string;
             email: string;
         };
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
     } & {
         id: string;
         createdAt: Date;
@@ -40,7 +60,15 @@ export declare class ProductsService {
         fileUrl: string;
         sellerId: string;
     })[]>;
-    findBySeller(sellerId: string): Promise<{
+    findBySeller(sellerId: string): Promise<({
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -51,8 +79,21 @@ export declare class ProductsService {
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-    }[]>;
+    })[]>;
     findOne(id: string): Promise<{
+        seller: {
+            id: string;
+            firstName: string | null;
+            lastName: string | null;
+        };
+        previews: {
+            id: string;
+            createdAt: Date;
+            productId: string;
+            audioUrl: string;
+            imageUrl: string | null;
+        }[];
+    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;

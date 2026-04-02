@@ -36,8 +36,8 @@ export declare class PaymentsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        amount: number;
         type: import("@prisma/client").$Enums.TransactionType;
+        amount: number;
         status: import("@prisma/client").$Enums.TransactionStatus;
         reference: string | null;
         walletId: string;

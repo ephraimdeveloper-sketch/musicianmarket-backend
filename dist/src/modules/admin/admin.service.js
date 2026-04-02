@@ -73,6 +73,17 @@ let AdminService = class AdminService {
             data: { status: 'COMPLETED' },
         });
     }
+    async generatePromoCode(type) {
+        const code = Math.random().toString(36).substring(2, 10).toUpperCase();
+        return this.prisma.promoCode.create({
+            data: { code, type, isUsed: false }
+        });
+    }
+    async sendBroadcastNotification(title, message) {
+        return this.prisma.notification.create({
+            data: { title, message }
+        });
+    }
 };
 exports.AdminService = AdminService;
 exports.AdminService = AdminService = __decorate([

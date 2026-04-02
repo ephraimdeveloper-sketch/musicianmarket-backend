@@ -11,10 +11,10 @@ export declare class ComplaintsController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string;
-        description: string;
         status: import("@prisma/client").$Enums.ComplaintStatus;
         purchaseId: string;
+        buyerId: string;
+        description: string;
         reason: import("@prisma/client").$Enums.ComplaintReason;
     }>;
     resolve(id: string, body: {

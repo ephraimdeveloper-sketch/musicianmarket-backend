@@ -35,11 +35,21 @@ let ProductsController = class ProductsController {
     findOne(id) {
         return this.productsService.findOne(id);
     }
-    upload(file, body, req) {
+    upload(files, body, req) {
+        const mainFile = files.find(f => f.fieldname === 'file');
+        const previews = [];
+        for (let i = 0; i < 10; i++) {
+            const audio = files.find(f => f.fieldname === `previewAudio_${i}`);
+            const image = files.find(f => f.fieldname === `previewImage_${i}`);
+            if (audio) {
+                previews.push({ audio, image });
+            }
+        }
         return this.productsService.create({
             ...body,
             price: parseFloat(body.price),
-            file,
+            mainFile,
+            previews,
             sellerId: req.user.id
         });
     }
@@ -84,12 +94,12 @@ __decorate([
 __decorate([
     (0, common_1.Post)('upload'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
-    __param(0, (0, common_1.UploadedFile)()),
+    (0, common_1.UseInterceptors)((0, platform_express_1.AnyFilesInterceptor)()),
+    __param(0, (0, common_1.UploadedFiles)()),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:paramtypes", [Array, Object, Object]),
     __metadata("design:returntype", void 0)
 ], ProductsController.prototype, "upload", null);
 __decorate([

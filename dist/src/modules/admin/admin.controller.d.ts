@@ -46,10 +46,10 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            buyerId: string;
-            description: string;
             status: import("@prisma/client").$Enums.ComplaintStatus;
             purchaseId: string;
+            buyerId: string;
+            description: string;
             reason: import("@prisma/client").$Enums.ComplaintReason;
         })[];
     }>;
@@ -76,8 +76,8 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            amount: number;
             type: import("@prisma/client").$Enums.TransactionType;
+            amount: number;
             status: import("@prisma/client").$Enums.TransactionStatus;
             reference: string | null;
             walletId: string;
@@ -89,12 +89,34 @@ export declare class AdminController {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            amount: number;
             type: import("@prisma/client").$Enums.TransactionType;
+            amount: number;
             status: import("@prisma/client").$Enums.TransactionStatus;
             reference: string | null;
             walletId: string;
             purchaseId: string | null;
+        };
+    }>;
+    createPromoCode(type: 'PROFILE_UPDATE' | 'PREMIUM_CHAT_IMAGE'): Promise<{
+        data: {
+            id: string;
+            createdAt: Date;
+            updatedAt: Date;
+            code: string;
+            type: import("@prisma/client").$Enums.PromoType;
+            isUsed: boolean;
+        };
+    }>;
+    sendNotification(body: {
+        title: string;
+        message: string;
+    }): Promise<{
+        data: {
+            id: string;
+            createdAt: Date;
+            message: string;
+            title: string;
+            targetUserId: string | null;
         };
     }>;
 }

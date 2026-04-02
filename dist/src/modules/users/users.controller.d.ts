@@ -47,6 +47,7 @@ export declare class UsersController {
         avatar: string | null;
         phone: string | null;
         otp: string | null;
+        avatarUpdates: number;
         createdAt: Date;
         updatedAt: Date;
     }>;
@@ -71,4 +72,15 @@ export declare class UsersController {
         buyerId: string;
         productId: string;
     })[]>;
+    updateAvatar(req: any, promoCode: string, file: any): Promise<{
+        message: string;
+        avatarUrl: string;
+    }>;
+    getNotifications(req: any): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        title: string;
+        targetUserId: string | null;
+    }[]>;
 }

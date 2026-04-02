@@ -20,6 +20,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
         avatar: string | null;
         phone: string | null;
         otp: string | null;
+        avatarUpdates: number;
         createdAt: Date;
         updatedAt: Date;
     }>;

@@ -43,10 +43,10 @@ export declare class AdminService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        buyerId: string;
-        description: string;
         status: import("@prisma/client").$Enums.ComplaintStatus;
         purchaseId: string;
+        buyerId: string;
+        description: string;
         reason: import("@prisma/client").$Enums.ComplaintReason;
     })[]>;
     getWithdrawalRequests(): Promise<({
@@ -71,8 +71,8 @@ export declare class AdminService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        amount: number;
         type: import("@prisma/client").$Enums.TransactionType;
+        amount: number;
         status: import("@prisma/client").$Enums.TransactionStatus;
         reference: string | null;
         walletId: string;
@@ -82,11 +82,26 @@ export declare class AdminService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
-        amount: number;
         type: import("@prisma/client").$Enums.TransactionType;
+        amount: number;
         status: import("@prisma/client").$Enums.TransactionStatus;
         reference: string | null;
         walletId: string;
         purchaseId: string | null;
+    }>;
+    generatePromoCode(type: 'PROFILE_UPDATE' | 'PREMIUM_CHAT_IMAGE'): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        code: string;
+        type: import("@prisma/client").$Enums.PromoType;
+        isUsed: boolean;
+    }>;
+    sendBroadcastNotification(title: string, message: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        title: string;
+        targetUserId: string | null;
     }>;
 }

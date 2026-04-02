@@ -82,10 +82,41 @@ let PaymentsService = class PaymentsService {
         }
         console.log('[MusicianMarket WEBHOOK] Successfully verified transaction:', verifiedTx.id);
         if (type === 'deposit') {
+            const wallet = await this.prisma.wallet.upsert({
+                where: { userId },
+                create: { userId, balance: verifiedTx.amount },
+                update: { balance: { increment: verifiedTx.amount } }
+            });
+            await this.prisma.transaction.create({
+                data: { amount: verifiedTx.amount, type: 'DEPOSIT', status: 'COMPLETED', reference: verifiedTx.id.toString(), walletId: wallet.id }
+            });
         }
         else if (type === 'order') {
+            const product = await this.prisma.product.findUnique({ where: { id: customId } });
+            if (product) {
+                const purchase = await this.prisma.purchase.create({
+                    data: { buyerId: userId, productId: product.id, price: verifiedTx.amount }
+                });
+                const fee = verifiedTx.amount * 0.15;
+                const earnings = verifiedTx.amount - fee;
+                const sellerWallet = await this.prisma.wallet.upsert({
+                    where: { userId: product.sellerId },
+                    create: { userId: product.sellerId, balance: earnings },
+                    update: { balance: { increment: earnings } }
+                });
+                await this.prisma.transaction.create({
+                    data: { amount: earnings, type: 'SALE_EARNING', status: 'COMPLETED', reference: verifiedTx.id.toString(), walletId: sellerWallet.id, purchaseId: purchase.id }
+                });
+            }
         }
-        else if (type === 'booking') {
+        else if (type === 'subscription') {
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+            await this.prisma.subscription.upsert({
+                where: { userId },
+                create: { userId, isActive: true, planId: customId, expiresAt },
+                update: { isActive: true, planId: customId, expiresAt }
+            });
         }
     }
 };

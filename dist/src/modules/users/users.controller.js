@@ -16,6 +16,7 @@ exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const users_service_1 = require("./users.service");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
+const platform_express_1 = require("@nestjs/platform-express");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -29,6 +30,15 @@ let UsersController = class UsersController {
     }
     getPurchases(req) {
         return this.usersService.getPurchases(req.user.id);
+    }
+    async updateAvatar(req, promoCode, file) {
+        if (!file) {
+            throw new common_1.BadRequestException('File is required');
+        }
+        return this.usersService.updateAvatar(req.user.id, file, promoCode);
+    }
+    getNotifications(req) {
+        return this.usersService.getNotifications(req.user.id);
     }
 };
 exports.UsersController = UsersController;
@@ -54,6 +64,23 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "getPurchases", null);
+__decorate([
+    (0, common_1.Post)('avatar'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)('promoCode')),
+    __param(2, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "updateAvatar", null);
+__decorate([
+    (0, common_1.Get)('notifications'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], UsersController.prototype, "getNotifications", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

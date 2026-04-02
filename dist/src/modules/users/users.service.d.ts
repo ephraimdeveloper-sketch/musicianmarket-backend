@@ -1,7 +1,9 @@
 import { PrismaService } from '../../database/prisma.service';
+import { B2Service } from '../../common/services/b2.service';
 export declare class UsersService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private b2;
+    constructor(prisma: PrismaService, b2: B2Service);
     findById(id: string): Promise<{
         id: string;
         email: string;
@@ -47,8 +49,13 @@ export declare class UsersService {
         avatar: string | null;
         phone: string | null;
         otp: string | null;
+        avatarUpdates: number;
         createdAt: Date;
         updatedAt: Date;
+    }>;
+    updateAvatar(id: string, file: any, promoCode?: string): Promise<{
+        message: string;
+        avatarUrl: string;
     }>;
     getPurchases(userId: string): Promise<({
         product: {
@@ -71,4 +78,11 @@ export declare class UsersService {
         buyerId: string;
         productId: string;
     })[]>;
+    getNotifications(userId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        message: string;
+        title: string;
+        targetUserId: string | null;
+    }[]>;
 }
