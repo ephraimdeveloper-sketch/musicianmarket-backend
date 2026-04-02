@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://user:password@localhost:5432/musicianmarket?schema=public"
+}
+
+// User Model
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id         String  @id @default(uuid())
+  email      String  @unique
+  password   String
+  firstName  String?
+  lastName   String?
+  role       Role    @default(USER)
+  isVerified Boolean @default(false)
+  country    String?
+  avatar     String?
+
+  // Relations
+  wallet           Wallet?
+  uploadedProducts Product[]     @relation("SellerProducts")
+  purchases        Purchase[]    @relation("BuyerPurchases")
+  complaints       Complaint[]   @relation("BuyerComplaints")
+  givenRatings     Rating[]      @relation("GivenRatings")
+  receivedRatings  Rating[]      @relation("ReceivedRatings")
+  sentMessages     Message[]     @relation("SentMessages")
+  subscription     Subscription?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Wallet
+model Wallet {
+  id       String @id @default(uuid())
+  balance  Float  @default(0.0)
+  currency String @default("USD")
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Transactions
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PURCHASE
+  SALE_EARNING
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+model Transaction {
+  id        String            @id @default(uuid())
+  amount    Float
+  type      TransactionType
+  status    TransactionStatus @default(PENDING)
+  reference String?
+
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id])
+
+  purchaseId String?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Marketplace Categories
+enum Category {
+  INSTRUMENT
+  VST
+  STEMS
+  LOOPS
+  DRONEPAD
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  price       Float
+  category    Category
+  previewUrl  String? // 10s preview
+  fileUrl     String // Backblaze secure url
+
+  sellerId String
+  seller   User   @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  purchases Purchase[]
+  ratings   Rating[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Purchases
+model Purchase {
+  id    String @id @default(uuid())
+  price Float
+
+  buyerId String
+  buyer   User   @relation("BuyerPurchases", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  complaint    Complaint?
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ComplaintStatus {
+  OPEN
+  RESOLVED_REFUNDED
+  RESOLVED_FUNDS_RELEASED
+  SELLER_RESPONDED
+}
+
+enum ComplaintReason {
+  BROKEN_FILE
+  NOT_MATCHING_PREVIEW
+  INCOMPLETE
+  NO_FILE
+}
+
+model Complaint {
+  id          String          @id @default(uuid())
+  reason      ComplaintReason
+  description String
+  status      ComplaintStatus @default(OPEN)
+
+  purchaseId String   @unique
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  buyerId String
+  buyer   User   @relation("BuyerComplaints", fields: [buyerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Rating {
+  id      String  @id @default(uuid())
+  score   Int // 1-5
+  comment String?
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  buyerId String
+  buyer   User   @relation("GivenRatings", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  sellerId String
+  seller   User   @relation("ReceivedRatings", fields: [sellerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Message {
+  id        String  @id @default(uuid())
+  content   String?
+  fileUrl   String?
+  reactions String? // JSON string or array
+
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  isPremiumGroup Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  isActive  Boolean  @default(true)
+  expiresAt DateTime
+  planId    String?
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
