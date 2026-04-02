@@ -12,51 +12,51 @@ export declare class ProductsController {
         };
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-        createdAt: Date;
-        updatedAt: Date;
     })[]>;
     findMyProducts(req: any): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-        createdAt: Date;
-        updatedAt: Date;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     upload(file: any, body: any, req: any): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-        createdAt: Date;
-        updatedAt: Date;
     }>;
     download(id: string, req: any): Promise<string>;
 }

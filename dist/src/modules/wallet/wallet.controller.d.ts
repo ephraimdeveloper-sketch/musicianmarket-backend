@@ -4,11 +4,11 @@ export declare class WalletController {
     constructor(walletService: WalletService);
     getMyWallet(req: any): Promise<{
         id: string;
-        userId: string;
-        balance: number;
-        currency: string;
         createdAt: Date;
         updatedAt: Date;
+        balance: number;
+        currency: string;
+        userId: string;
     }>;
     checkout(req: any, body: {
         productId: string;

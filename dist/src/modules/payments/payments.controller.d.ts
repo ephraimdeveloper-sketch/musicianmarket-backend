@@ -1,7 +1,23 @@
 import { WalletService } from '../wallet/wallet.service';
+import { PaymentsService } from './payments.service';
+import { ConfigService } from '@nestjs/config';
 export declare class PaymentsController {
     private readonly walletService;
-    constructor(walletService: WalletService);
+    private readonly paymentsService;
+    private readonly configService;
+    constructor(walletService: WalletService, paymentsService: PaymentsService, configService: ConfigService);
+    initializePayment(body: {
+        amount: number;
+        type: string;
+        customId: string;
+    }, req: any): Promise<{
+        paymentLink: any;
+        reference: string;
+    }>;
+    handleWebhook(internalSecret: string, body: any): Promise<{
+        status: string;
+    }>;
+    paymentCallback(query: any, res: any): Promise<any>;
     buyProduct(productId: string, req: any): Promise<{
         purchase: {
             id: string;

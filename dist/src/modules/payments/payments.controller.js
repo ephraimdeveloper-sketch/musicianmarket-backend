@@ -15,11 +15,38 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentsController = void 0;
 const common_1 = require("@nestjs/common");
 const wallet_service_1 = require("../wallet/wallet.service");
+const payments_service_1 = require("./payments.service");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
+const config_1 = require("@nestjs/config");
 let PaymentsController = class PaymentsController {
     walletService;
-    constructor(walletService) {
+    paymentsService;
+    configService;
+    constructor(walletService, paymentsService, configService) {
         this.walletService = walletService;
+        this.paymentsService = paymentsService;
+        this.configService = configService;
+    }
+    initializePayment(body, req) {
+        return this.paymentsService.initializePayment(req.user.id, body.amount, body.type, body.customId);
+    }
+    async handleWebhook(internalSecret, body) {
+        if (internalSecret !== this.configService.get('INTERNAL_WEBHOOK_SECRET')) {
+            throw new common_1.UnauthorizedException('Unauthorized');
+        }
+        const tx = body.data;
+        if (!tx || !tx.meta) {
+            return { status: 'ignored' };
+        }
+        await this.paymentsService.handleWebhook(tx);
+        return { status: 'success' };
+    }
+    async paymentCallback(query, res) {
+        const { status, tx_ref, transaction_id } = query;
+        const clientUrl = this.configService.get('CLIENT_URL') || 'http://localhost:3000';
+        const cleanStatus = status === 'successful' || status === 'completed' ? 'successful' : 'cancelled';
+        const redirectUrl = `${clientUrl}/payment-status?status=${cleanStatus}&tx_ref=${encodeURIComponent(tx_ref || '')}&transaction_id=${encodeURIComponent(transaction_id || '')}`;
+        return res.redirect(redirectUrl);
     }
     buyProduct(productId, req) {
         return this.walletService.processSale(req.user.id, productId);
@@ -32,6 +59,31 @@ let PaymentsController = class PaymentsController {
     }
 };
 exports.PaymentsController = PaymentsController;
+__decorate([
+    (0, common_1.Post)('init'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], PaymentsController.prototype, "initializePayment", null);
+__decorate([
+    (0, common_1.Post)('webhook'),
+    __param(0, (0, common_1.Headers)('x-internal-secret')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PaymentsController.prototype, "handleWebhook", null);
+__decorate([
+    (0, common_1.Get)('callback'),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], PaymentsController.prototype, "paymentCallback", null);
 __decorate([
     (0, common_1.Post)('buy/:productId'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -60,6 +112,8 @@ __decorate([
 ], PaymentsController.prototype, "getWallet", null);
 exports.PaymentsController = PaymentsController = __decorate([
     (0, common_1.Controller)('payments'),
-    __metadata("design:paramtypes", [wallet_service_1.WalletService])
+    __metadata("design:paramtypes", [wallet_service_1.WalletService,
+        payments_service_1.PaymentsService,
+        config_1.ConfigService])
 ], PaymentsController);
 //# sourceMappingURL=payments.controller.js.map

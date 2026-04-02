@@ -13,14 +13,14 @@ export declare class ProductsService {
         file: any;
     }): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
-        createdAt: Date;
-        updatedAt: Date;
         sellerId: string;
     }>;
     findAll(category?: Category): Promise<({
@@ -30,38 +30,38 @@ export declare class ProductsService {
         };
     } & {
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
-        createdAt: Date;
-        updatedAt: Date;
         sellerId: string;
     })[]>;
     findBySeller(sellerId: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
-        createdAt: Date;
-        updatedAt: Date;
         sellerId: string;
     }[]>;
     findOne(id: string): Promise<{
         id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
         title: string;
         description: string | null;
-        price: number;
         category: import("@prisma/client").$Enums.Category;
         previewUrl: string | null;
         fileUrl: string;
-        createdAt: Date;
-        updatedAt: Date;
         sellerId: string;
     }>;
     getFileDownloadUrl(productId: string): Promise<string>;
