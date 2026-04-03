@@ -20,6 +20,7 @@ export class ProductsController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async findMyProducts(@Req() req: any) {
+    // req.user here is the full user from jwt.strategy.ts
     const data = await this.productsService.findBySeller(req.user.id);
     return { data };
   }
