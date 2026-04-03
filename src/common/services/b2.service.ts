@@ -9,6 +9,7 @@ export class B2Service {
   private b2: any;
   private readonly logger = new Logger(B2Service.name);
   private cachedBucketId: string | null = null;
+  private cachedDownloadUrl: string | null = null;
 
   constructor(private configService: ConfigService) {
     this.b2 = new B2({
@@ -21,12 +22,9 @@ export class B2Service {
     return this.configService.get<string>('B2_BUCKET') || '';
   }
 
-  private get endpoint(): string {
-    return this.configService.get<string>('B2_ENDPOINT') || 's3.us-east-005.backblazeb2.com';
-  }
-
   private async init(): Promise<void> {
-    await this.b2.authorize();
+    const authRes = await this.b2.authorize();
+    this.cachedDownloadUrl = authRes.data.downloadUrl;
 
     if (!this.cachedBucketId) {
       // ✅ Prefer explicit B2_BUCKET_ID from .env (avoids listBuckets permission requirement)
@@ -41,7 +39,7 @@ export class B2Service {
       try {
         const res = await this.b2.listBuckets();
         const buckets: any[] = res.data?.buckets || [];
-        const match = buckets.find((b: any) => b.bucketName === this.bucketName);
+        const match = buckets.find((b: any) => b.bucketName === this.bucketName || b.bucketName === this.configService.get<string>('B2_BUCKET_NAME'));
         if (match) {
           this.cachedBucketId = match.bucketId;
           this.logger.log(`Resolved B2 bucketId for "${this.bucketName}": ${this.cachedBucketId}`);
@@ -73,9 +71,8 @@ export class B2Service {
         contentType,
       });
 
-      const fileUrl = fileName;
-      this.logger.log(`File registered: ${fileUrl}`);
-      return fileUrl;
+      this.logger.log(`File registered: ${fileName}`);
+      return fileName;
     } catch (error) {
       this.logger.error('B2 Upload Failed', error);
       throw error;
@@ -83,21 +80,29 @@ export class B2Service {
   }
 
   async getSignedUrl(fileName: string): Promise<string> {
+    if (!fileName) return '';
     try {
       await this.init();
 
+      // Ensure fileName is JUST the path within the bucket
+      let cleanFileName = fileName;
+      if (fileName.includes('/file/')) {
+        // format: https://.../file/bucketName/path/to/file
+        const parts = fileName.split('/file/')[1].split('/');
+        cleanFileName = parts.slice(1).join('/'); // skip bucketName
+      }
+
       const authRes = await this.b2.getDownloadAuthorization({
         bucketId: this.cachedBucketId,
-        fileNamePrefix: fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName,
+        fileNamePrefix: cleanFileName,
         validDurationInSeconds: 3600,
       });
 
       const authToken = authRes.data.authorizationToken;
-      const cleanFileName = fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName;
-      return `https://${this.endpoint}/file/${this.bucketName}/${cleanFileName}?Authorization=${authToken}`;
+      return `${this.cachedDownloadUrl}/file/${this.bucketName}/${cleanFileName}?Authorization=${authToken}`;
     } catch (error) {
-      this.logger.error('B2 GetSignedUrl Failed', error);
-      throw error;
+      this.logger.error(`B2 GetSignedUrl Failed for ${fileName}`, error);
+      return '';
     }
   }
 

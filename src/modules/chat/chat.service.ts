@@ -55,7 +55,7 @@ export class ChatService {
       fileUrl = await this.b2.uploadFile(fileName, file.buffer, file.mimetype);
     }
 
-    return this.prisma.message.create({
+    const msg = await this.prisma.message.create({
       data: { 
         senderId, 
         content, 
@@ -68,6 +68,18 @@ export class ChatService {
         replyTo: { select: { id: true, content: true, sender: { select: { firstName: true } } } }
       },
     });
+
+    const sender = { ...msg.sender };
+    if (sender.avatar) {
+       try { sender.avatar = await this.b2.getSignedUrl(sender.avatar); } catch(e) {}
+    }
+
+    let fileUrlSigned = null;
+    if (msg.fileUrl) {
+       try { fileUrlSigned = await this.b2.getSignedUrl(msg.fileUrl); } catch(e) {}
+    }
+
+    return { ...msg, sender, fileUrlSigned };
   }
 
   async reactToMessage(messageId: string, reaction: string, userId: string) {
@@ -110,11 +122,15 @@ export class ChatService {
     const populatedMsgs = await Promise.all(msgs.map(async m => {
       let resolvedFileUrl = null;
       if (m.fileUrl) {
-         try {
-           resolvedFileUrl = await this.b2.getSignedUrl(m.fileUrl);
-         } catch(e) {}
+         try { resolvedFileUrl = await this.b2.getSignedUrl(m.fileUrl); } catch(e) {}
       }
-      return { ...m, fileUrlSigned: resolvedFileUrl };
+      
+      const sender = { ...m.sender };
+      if (sender.avatar) {
+         try { sender.avatar = await this.b2.getSignedUrl(sender.avatar); } catch(e) {}
+      }
+
+      return { ...m, sender, fileUrlSigned: resolvedFileUrl };
     }));
 
     return populatedMsgs;

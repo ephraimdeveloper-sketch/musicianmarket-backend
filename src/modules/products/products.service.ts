@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { B2Service } from '../../common/services/b2.service';
-import { Category } from '@prisma/client';
+import { Category, Prisma } from '@prisma/client';
 
 @Injectable()
 export class ProductsService {
@@ -41,14 +41,17 @@ export class ProductsService {
     const mainFileId = await this.b2.uploadFile(mainFileName, data.mainFile.buffer, data.mainFile.mimetype);
 
     // 2. Upload Previews
-    const previewRecords = [];
+    const previewRecords: any[] = [];
     for (const preview of data.previews) {
-      if (!preview.audio) continue;
+      if (!preview.audio && !preview.image) continue;
       
-      const pAudioName = `${Date.now()}-pa-${preview.audio.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const pAudioId = await this.b2.uploadFile(pAudioName, preview.audio.buffer, preview.audio.mimetype);
+      let pAudioId: string | null = null;
+      if (preview.audio) {
+        const pAudioName = `${Date.now()}-pa-${preview.audio.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        pAudioId = await this.b2.uploadFile(pAudioName, preview.audio.buffer, preview.audio.mimetype);
+      }
       
-      let pImageId = null;
+      let pImageId: string | null = null;
       if (preview.image) {
         const pImageName = `${Date.now()}-pi-${preview.image.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         pImageId = await this.b2.uploadFile(pImageName, preview.image.buffer, preview.image.mimetype);
@@ -127,7 +130,9 @@ export class ProductsService {
       imageUrl: prev.imageUrl ? await this.b2.getSignedUrl(prev.imageUrl) : null
     })));
 
-    return { ...product, previews: signedPreviews };
+    const signedLegacyPreview = product.previewUrl ? await this.b2.getSignedUrl(product.previewUrl) : null;
+
+    return { ...product, previews: signedPreviews, previewUrl: signedLegacyPreview };
   }
 
   async getFileDownloadUrl(productId: string) {

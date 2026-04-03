@@ -18,13 +18,20 @@ export class UsersService {
         isVerified: true,
         country: true,
         avatar: true,
+        avatarUpdates: true,
         createdAt: true,
-        subscription: true,
+        subscription: { select: { isActive: true, expiresAt: true, planId: true } },
         wallet: { select: { id: true, balance: true, currency: true } },
         _count: { select: { uploadedProducts: true, purchases: true } },
       },
     });
     if (!user) throw new NotFoundException('User not found');
+    
+    // Sign avatar URL if it exists
+    if (user.avatar) {
+      user.avatar = await this.b2.getSignedUrl(user.avatar);
+    }
+    
     return user;
   }
 
@@ -83,10 +90,24 @@ export class UsersService {
   }
 
   async getPurchases(userId: string) {
-    return this.prisma.purchase.findMany({
+    const purchases = await this.prisma.purchase.findMany({
       where: { buyerId: userId },
-      include: { product: true }
+      include: { 
+        product: {
+           include: { previews: true }
+        }
+      }
     });
+
+    return Promise.all(purchases.map(async pur => {
+       const product = pur.product;
+       const signedPreviews = await Promise.all(product.previews.map(async prev => ({
+          ...prev,
+          audioUrl: prev.audioUrl ? await this.b2.getSignedUrl(prev.audioUrl) : null,
+          imageUrl: prev.imageUrl ? await this.b2.getSignedUrl(prev.imageUrl) : null
+       })));
+       return { ...pur, product: { ...product, previews: signedPreviews } };
+    }));
   }
 
   async getNotifications(userId: string) {
