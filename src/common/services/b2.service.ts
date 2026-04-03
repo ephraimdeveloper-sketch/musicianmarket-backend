@@ -73,8 +73,8 @@ export class B2Service {
         contentType,
       });
 
-      const fileUrl = `https://${this.endpoint}/file/${this.bucketName}/${fileName}`;
-      this.logger.log(`File uploaded: ${fileUrl}`);
+      const fileUrl = fileName;
+      this.logger.log(`File registered: ${fileUrl}`);
       return fileUrl;
     } catch (error) {
       this.logger.error('B2 Upload Failed', error);

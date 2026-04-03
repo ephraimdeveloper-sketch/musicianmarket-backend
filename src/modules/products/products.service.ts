@@ -79,21 +79,39 @@ export class ProductsService {
   }
 
   async findAll(category?: Category) {
-    return this.prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       where: category ? { category } : {},
       include: { 
         seller: { select: { id: true, email: true } },
         previews: true
       }
     });
+
+    return Promise.all(products.map(async p => {
+      const signedPreviews = await Promise.all(p.previews.map(async prev => ({
+        ...prev,
+        audioUrl: prev.audioUrl ? await this.b2.getSignedUrl(prev.audioUrl) : null,
+        imageUrl: prev.imageUrl ? await this.b2.getSignedUrl(prev.imageUrl) : null
+      })));
+      return { ...p, previews: signedPreviews };
+    }));
   }
 
   async findBySeller(sellerId: string) {
-    return this.prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       where: { sellerId },
       orderBy: { createdAt: 'desc' },
       include: { previews: true }
     });
+
+    return Promise.all(products.map(async p => {
+      const signedPreviews = await Promise.all(p.previews.map(async prev => ({
+        ...prev,
+        audioUrl: prev.audioUrl ? await this.b2.getSignedUrl(prev.audioUrl) : null,
+        imageUrl: prev.imageUrl ? await this.b2.getSignedUrl(prev.imageUrl) : null
+      })));
+      return { ...p, previews: signedPreviews };
+    }));
   }
 
   async findOne(id: string) {
@@ -102,7 +120,14 @@ export class ProductsService {
       include: { previews: true, seller: { select: { id: true, firstName: true, lastName: true } } }
     });
     if (!product) throw new NotFoundException('Product not found');
-    return product;
+    
+    const signedPreviews = await Promise.all(product.previews.map(async prev => ({
+      ...prev,
+      audioUrl: prev.audioUrl ? await this.b2.getSignedUrl(prev.audioUrl) : null,
+      imageUrl: prev.imageUrl ? await this.b2.getSignedUrl(prev.imageUrl) : null
+    })));
+
+    return { ...product, previews: signedPreviews };
   }
 
   async getFileDownloadUrl(productId: string) {
