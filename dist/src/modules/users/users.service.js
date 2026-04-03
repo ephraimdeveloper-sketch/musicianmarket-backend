@@ -78,11 +78,7 @@ let UsersService = class UsersService {
         }
         const fileName = `avatar-${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         const fileUrl = await this.b2.uploadFile(fileName, file.buffer, file.mimetype);
-        let resolvedUrl = fileUrl;
-        try {
-            resolvedUrl = await this.b2.getSignedUrl(fileUrl);
-        }
-        catch (e) { }
+        const resolvedUrl = await this.b2.getSignedUrl(fileUrl);
         await this.prisma.user.update({
             where: { id },
             data: { avatar: fileUrl, avatarUpdates: { increment: 1 } },

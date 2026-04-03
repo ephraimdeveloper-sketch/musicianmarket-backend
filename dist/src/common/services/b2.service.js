@@ -71,8 +71,8 @@ let B2Service = B2Service_1 = class B2Service {
                 data: buffer,
                 contentType,
             });
-            const fileUrl = `https://${this.endpoint}/file/${this.bucketName}/${fileName}`;
-            this.logger.log(`File uploaded: ${fileUrl}`);
+            const fileUrl = fileName;
+            this.logger.log(`File registered: ${fileUrl}`);
             return fileUrl;
         }
         catch (error) {
@@ -85,15 +85,37 @@ let B2Service = B2Service_1 = class B2Service {
             await this.init();
             const authRes = await this.b2.getDownloadAuthorization({
                 bucketId: this.cachedBucketId,
-                fileNamePrefix: fileName,
+                fileNamePrefix: fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName,
                 validDurationInSeconds: 3600,
             });
             const authToken = authRes.data.authorizationToken;
-            return `https://${this.endpoint}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
+            const cleanFileName = fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName;
+            return `https://${this.endpoint}/file/${this.bucketName}/${cleanFileName}?Authorization=${authToken}`;
         }
         catch (error) {
             this.logger.error('B2 GetSignedUrl Failed', error);
             throw error;
+        }
+    }
+    async deleteFile(fileName) {
+        try {
+            await this.init();
+            const res = await this.b2.listFileVersions({
+                bucketId: this.cachedBucketId,
+                startFileName: fileName,
+                maxFileCount: 1,
+            });
+            const file = res.data.files.find((f) => f.fileName === fileName);
+            if (file) {
+                await this.b2.deleteFileVersion({
+                    fileName: file.fileName,
+                    fileId: file.fileId,
+                });
+                this.logger.log(`File deleted from B2: ${fileName}`);
+            }
+        }
+        catch (error) {
+            this.logger.error('B2 Delete Failed', error);
         }
     }
 };

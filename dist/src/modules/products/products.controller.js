@@ -29,8 +29,9 @@ let ProductsController = class ProductsController {
     findAll(category) {
         return this.productsService.findAll(category);
     }
-    findMyProducts(req) {
-        return this.productsService.findBySeller(req.user.id);
+    async findMyProducts(req) {
+        const data = await this.productsService.findBySeller(req.user.id);
+        return { data };
     }
     findOne(id) {
         return this.productsService.findOne(id);
@@ -67,6 +68,9 @@ let ProductsController = class ProductsController {
         }
         return this.productsService.getFileDownloadUrl(id);
     }
+    delete(id, req) {
+        return this.productsService.delete(id, req.user.id);
+    }
 };
 exports.ProductsController = ProductsController;
 __decorate([
@@ -82,7 +86,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "findMyProducts", null);
 __decorate([
     (0, common_1.Get)(':id'),
@@ -111,6 +115,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ProductsController.prototype, "download", null);
+__decorate([
+    (0, common_1.Post)(':id/delete'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], ProductsController.prototype, "delete", null);
 exports.ProductsController = ProductsController = __decorate([
     (0, common_1.Controller)('products'),
     __metadata("design:paramtypes", [products_service_1.ProductsService,

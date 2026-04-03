@@ -88,12 +88,13 @@ export class B2Service {
 
       const authRes = await this.b2.getDownloadAuthorization({
         bucketId: this.cachedBucketId,
-        fileNamePrefix: fileName,
+        fileNamePrefix: fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName,
         validDurationInSeconds: 3600,
       });
 
       const authToken = authRes.data.authorizationToken;
-      return `https://${this.endpoint}/file/${this.bucketName}/${fileName}?Authorization=${authToken}`;
+      const cleanFileName = fileName.includes('backblazeb2.com/file/') ? fileName.split('/file/')[1].split('/').slice(1).join('/') : fileName;
+      return `https://${this.endpoint}/file/${this.bucketName}/${cleanFileName}?Authorization=${authToken}`;
     } catch (error) {
       this.logger.error('B2 GetSignedUrl Failed', error);
       throw error;

@@ -36,19 +36,18 @@ export declare class ProductsService {
         fileUrl: string;
         sellerId: string;
     }>;
-    findAll(category?: Category): Promise<({
+    findAll(category?: Category): Promise<{
+        previews: {
+            audioUrl: string | null;
+            imageUrl: string | null;
+            id: string;
+            createdAt: Date;
+            productId: string;
+        }[];
         seller: {
             id: string;
             email: string;
         };
-        previews: {
-            id: string;
-            createdAt: Date;
-            productId: string;
-            audioUrl: string;
-            imageUrl: string | null;
-        }[];
-    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -59,16 +58,15 @@ export declare class ProductsService {
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-    })[]>;
-    findBySeller(sellerId: string): Promise<({
+    }[]>;
+    findBySeller(sellerId: string): Promise<{
         previews: {
+            audioUrl: string | null;
+            imageUrl: string | null;
             id: string;
             createdAt: Date;
             productId: string;
-            audioUrl: string;
-            imageUrl: string | null;
         }[];
-    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -79,21 +77,20 @@ export declare class ProductsService {
         previewUrl: string | null;
         fileUrl: string;
         sellerId: string;
-    })[]>;
+    }[]>;
     findOne(id: string): Promise<{
+        previews: {
+            audioUrl: string | null;
+            imageUrl: string | null;
+            id: string;
+            createdAt: Date;
+            productId: string;
+        }[];
         seller: {
             id: string;
             firstName: string | null;
             lastName: string | null;
         };
-        previews: {
-            id: string;
-            createdAt: Date;
-            productId: string;
-            audioUrl: string;
-            imageUrl: string | null;
-        }[];
-    } & {
         id: string;
         createdAt: Date;
         updatedAt: Date;
@@ -106,4 +103,16 @@ export declare class ProductsService {
         sellerId: string;
     }>;
     getFileDownloadUrl(productId: string): Promise<string>;
+    delete(id: string, sellerId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        price: number;
+        title: string;
+        description: string | null;
+        category: import("@prisma/client").$Enums.Category;
+        previewUrl: string | null;
+        fileUrl: string;
+        sellerId: string;
+    }>;
 }

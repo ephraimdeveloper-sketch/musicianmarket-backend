@@ -10,4 +10,5 @@ export declare class B2Service {
     private init;
     uploadFile(fileName: string, buffer: Buffer, contentType: string): Promise<string>;
     getSignedUrl(fileName: string): Promise<string>;
+    deleteFile(fileName: string): Promise<void>;
 }
