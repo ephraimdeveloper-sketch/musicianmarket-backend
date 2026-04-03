@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { B2Service } from '../../common/services/b2.service';
 import { Category } from '@prisma/client';
@@ -133,6 +133,31 @@ export class ProductsService {
   async getFileDownloadUrl(productId: string) {
     const product = await this.findOne(productId);
     return this.b2.getSignedUrl(product.fileUrl);
+  }
+
+  async delete(id: string, sellerId: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { previews: true }
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
+    if (product.sellerId !== sellerId) throw new ForbiddenException('You can only delete your own products');
+
+    // 1. Delete associated files from B2
+    try {
+      await this.b2.deleteFile(product.fileUrl);
+      for (const preview of product.previews) {
+        if (preview.audioUrl) await this.b2.deleteFile(preview.audioUrl);
+        if (preview.imageUrl) await this.b2.deleteFile(preview.imageUrl);
+      }
+    } catch (e) {
+      // Log error but continue with DB deletion
+      console.error('B2 cleanup failed during product deletion', e);
+    }
+
+    // 2. Delete from DB
+    return this.prisma.product.delete({ where: { id } });
   }
 }
 

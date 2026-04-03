@@ -19,8 +19,9 @@ export class ProductsController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  findMyProducts(@Req() req: any) {
-    return this.productsService.findBySeller(req.user.id);
+  async findMyProducts(@Req() req: any) {
+    const data = await this.productsService.findBySeller(req.user.id);
+    return { data };
   }
 
   @Get(':id')
@@ -73,5 +74,11 @@ export class ProductsController {
     }
 
     return this.productsService.getFileDownloadUrl(id);
+  }
+
+  @Post(':id/delete') // Or @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  delete(@Param('id') id: string, @Req() req: any) {
+    return this.productsService.delete(id, req.user.id);
   }
 }

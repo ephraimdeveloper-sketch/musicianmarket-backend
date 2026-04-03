@@ -99,4 +99,27 @@ export class B2Service {
       throw error;
     }
   }
+
+  async deleteFile(fileName: string): Promise<void> {
+    try {
+      await this.init();
+      // First, get the file versions to find the fileId
+      const res = await this.b2.listFileVersions({
+        bucketId: this.cachedBucketId,
+        startFileName: fileName,
+        maxFileCount: 1,
+      });
+
+      const file = res.data.files.find((f: any) => f.fileName === fileName);
+      if (file) {
+        await this.b2.deleteFileVersion({
+          fileName: file.fileName,
+          fileId: file.fileId,
+        });
+        this.logger.log(`File deleted from B2: ${fileName}`);
+      }
+    } catch (error) {
+      this.logger.error('B2 Delete Failed', error);
+    }
+  }
 }
